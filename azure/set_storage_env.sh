@@ -2,9 +2,11 @@
 
 #Configutation
 RESOURCE_GROUP="anomaly_detection"
+
+#Get the name of the storage account containing "cloudshellstorage"
 STORAGE_ACCOUNT=$(az storage account list \
 --resource-group $RESOURCE_GROUP \
---query "[?contains(name, 'cloudshellstorage')].name" \ 
+--query "[?contains(name, 'llamamlws6782360884')].name" \ 
 --output tsv)
 
 
@@ -13,5 +15,8 @@ export AZURE_STORAGE_CONNECTION_STRING=$(az storage account show-connection-stri
 --name $STORAGE_ACCOUNT \
 --resource-group $RESOURCE_GROUP \
 --output tsv)
+
+# Export the connection string to the current shell session
+export AZURE_STORAGE_CONNECTION_STRING
 
 echo "AZURE_STORAGE_CONNECTION_STRING set for storage account: $STORAGE_ACCOUNT"
