@@ -6,7 +6,7 @@ import sys
 #Storage Account and container details to upload files into into
 storage_account_url ="https://llamamlws6782360884.blob.core.windows.net"
 container_name ="azureml-blobstore-b7c414df-3828-467b-bfef-f764143fac7b"
-connection_string = os.getenv("DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=llamamlws6782360884;AccountKey=YArgVFhQLYrdSmoDsiN70a5hWR0vRna02aX15aT3CWIVptueF7hkgesLKx7JFmlqp1tS2gqvZpLW+AStRkBI6Q==;BlobEndpoint=https://llamamlws6782360884.blob.core.windows.net/;FileEndpoint=https://llamamlws6782360884.file.core.windows.net/;QueueEndpoint=https://llamamlws6782360884.queue.core.windows.net/;TableEndpoint=https://llamamlws6782360884.table.core.windows.net/")
+connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 
 
 #Taking the file path from the from CLI
