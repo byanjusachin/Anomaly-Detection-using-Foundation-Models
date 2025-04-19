@@ -1,22 +1,22 @@
 #!/bin/bash
 
-#Configuration
+# Manually defined variables
+STORAGE_ACCOUNT="llamamlws6782360884"
 RESOURCE_GROUP="anomaly_detection"
-STORAGE_ACCOUNT ="llamamlws6782360884"
 
-
-# Fetch and export the connection string 
+# Get the connection string
 AZURE_STORAGE_CONNECTION_STRING=$(az storage account show-connection-string \
---name "$STORAGE_ACCOUNT" \
---resource-group "$RESOURCE_GROUP" \
---output tsv)
+  --name "$STORAGE_ACCOUNT" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query connectionString \
+  --output tsv)
 
-
-if [-z "$AZURE_STORAGE_CONNECTION_STRING" ]; then
-    echo " Failed to retrieve connection string for $STORAGE_ACCOUNT"
-    exit 1
+# Check if the command succeeded
+if [ -z "$AZURE_STORAGE_CONNECTION_STRING" ]; then
+  echo "Failed to retrieve connection string for $STORAGE_ACCOUNT"
+  return 1
 fi
-# Export the connection string to the current shell session
-export AZURE_STORAGE_CONNECTION_STRING
 
+# Export the connection string
+export AZURE_STORAGE_CONNECTION_STRING
 echo "AZURE_STORAGE_CONNECTION_STRING set for storage account: $STORAGE_ACCOUNT"
