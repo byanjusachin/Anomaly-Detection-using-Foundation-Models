@@ -1,21 +1,21 @@
 #!/bin/bash
 
-#Configutation
+#Configuration
 RESOURCE_GROUP="anomaly_detection"
-
-#Get the name of the storage account containing "cloudshellstorage"
-STORAGE_ACCOUNT=$(az storage account list \
---resource-group $RESOURCE_GROUP \
---query "[?contains(name, 'llamamlws6782360884')].name" \ 
---output tsv)
+STORAGE_ACCOUNT ="llamamlws6782360884"
 
 
 # Fetch and export the connection string 
-export AZURE_STORAGE_CONNECTION_STRING=$(az storage account show-connection-string \
---name $STORAGE_ACCOUNT \
---resource-group $RESOURCE_GROUP \
+AZURE_STORAGE_CONNECTION_STRING=$(az storage account show-connection-string \
+--name "$STORAGE_ACCOUNT" \
+--resource-group "$RESOURCE_GROUP" \
 --output tsv)
 
+
+if [-z "$AZURE_STORAGE_CONNECTION_STRING" ]; then
+    echo " Failed to retrieve connection string for $STORAGE_ACCOUNT"
+    exit 1
+fi
 # Export the connection string to the current shell session
 export AZURE_STORAGE_CONNECTION_STRING
 
