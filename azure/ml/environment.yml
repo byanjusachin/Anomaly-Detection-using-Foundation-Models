@@ -1,0 +1,16 @@
+name: llama-env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - torch==2.1.2
+      - transformers==4.37.2
+      - accelerate==0.27.2
+      - pandas
+      - scikit-learn
+      - pyarrow
+      - huggingface_hub
+      - ipykernel

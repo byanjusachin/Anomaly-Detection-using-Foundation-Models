@@ -1,0 +1,18 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+command: >-
+  python llama/zero_shot.py
+environment:
+  conda_file: azureml/environment.yml
+  name: llama-env
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-cuda11.8-cudnn8-ubuntu20.04  # GPU-enabled base image
+compute: llama-compute-zero
+display_name: zero-shot-llama3
+experiment_name: anomaly-detection
+code: .
+resources:
+  instance_count: 1
+environment_variables:
+  INPUT_FILE: data/test.csv
+  OUTPUT_FILE: outputs/zero_shot_predictions.csv
+  HF_HOME: /mnt/azureml/hf_models/  # Optional: cache Hugging Face models
+  TRANSFORMERS_CACHE: /mnt/azureml/hf_models/
