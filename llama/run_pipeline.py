@@ -1,21 +1,14 @@
 import argparse
 import os
 import subprocess
-from azure.identity import DefaultAzureCredential
-from azure.ai.ml import MLClient, Input, command
-from azure.ai.ml.entities import AmlCompute
-from llama.utils import ensure_compute_exists
 from dotenv import load_dotenv
+from azure.ai.ml import MLClient, Input, command
+from llama.utils import ensure_compute_exists
 
 load_dotenv()  # Load .env with AZURE_* values
 
 # Azure ML workspace connection
-ml_client = MLClient(
-    credential=DefaultAzureCredential(),
-    subscription_id=os.getenv("AZURE_SUBSCRIPTION_ID"),
-    resource_group_name=os.getenv("AZURE_RESOURCE_GROUP"),
-    workspace_name=os.getenv("AZURE_WORKSPACE_NAME")
-)
+ml_client =  MLClient.from_config()
 
 COMPUTE_NAME = "llama-compute-zero"
 ENV_YAML = "azure/ml/environment.yml"

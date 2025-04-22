@@ -1,14 +1,7 @@
-from azure.identity import DefaultAzureCredential
 from azure.ai.ml import MLClient
 from azure.ai.ml.entities import AmlCompute
-import os
 
-ml_client = MLClient(
-    credential=DefaultAzureCredential(),
-    subscription_id=os.getenv("AZURE_SUBSCRIPTION_ID"),
-    resource_group_name=os.getenv("AZURE_RESOURCE_GROUP"),
-    workspace_name=os.getenv("AZURE_WORKSPACE_NAME")
-)
+ml_client = MLClient.from_config()
 
 def ensure_compute_exists(name: str):
     try:
@@ -23,4 +16,6 @@ def ensure_compute_exists(name: str):
             max_instances=1,
             idle_time_before_scale_down=120
         )
-        ml_client.begin_create_or_update(cluster).result()
+        poller = ml_client.begin_create_or_update(compute_cluster)
+        poller.result()
+        print(f"Compute target '{name}' created.")        
