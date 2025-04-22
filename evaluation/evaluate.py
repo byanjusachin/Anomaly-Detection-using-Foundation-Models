@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 
 # Load from Azure ML inputs/outputs
-INPUT_FILE = os.getenv("INPUT_FILE", "outputs/zero_shot_predictions.csv")
-OUTPUT_FILE = os.getenv("OUTPUT_FILE", "outputs/eval_results.json")
+INPUT_FILE = os.getenv("input_file", "outputs/zero_shot_predictions.csv")
+OUTPUT_FILE = os.getenv("output_file", "outputs/eval_results.json")
 
 
 def evaluate_results(input_file: str = INPUT_FILE, report_file: str = OUTPUT_FILE):

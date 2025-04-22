@@ -2,35 +2,41 @@ import argparse
 import os
 import subprocess
 from dotenv import load_dotenv
+from azure.identity import DefaultAzureCredential
 from azure.ai.ml import MLClient, Input, command
 from llama.utils import ensure_compute_exists
 
 load_dotenv()  # Load .env with AZURE_* values
 
-# Azure ML workspace connection
-ml_client =  MLClient.from_config()
+# Auth into Azure ML
+ml_client = MLClient(
+    credential=DefaultAzureCredential(),
+    subscription_id=os.getenv("AZURE_SUBSCRIPTION_ID"),
+    resource_group_name=os.getenv("AZURE_RESOURCE_GROUP"),
+    workspace_name=os.getenv("AZURE_WORKSPACE_NAME")
+)
 
 COMPUTE_NAME = "llama-compute-zero"
 ENV_YAML = "azure/ml/environment.yml"
 
 
 def upload_to_blob(input_file: str) -> str:
-    print(f"📤 Uploading {input_file} to Azure Blob...")
+    print(f"Uploading {input_file} to Azure Blob...")
     result = subprocess.run(
         ["python", "azure/storage/upload_to_blob.py", "--file", input_file],
         capture_output=True, text=True
     )
     if result.returncode != 0:
-        print("❌ Upload failed:", result.stderr)
+        print("Upload failed:", result.stderr)
         exit(1)
 
     blob_uri = result.stdout.strip()
-    print(f"✅ Uploaded to Blob: {blob_uri}")
+    print(f" Uploaded to Blob: {blob_uri}")
     return blob_uri
 
 
 def submit_job(script_path, job_name, input_blob_uri, output_path):
-    print(f"🚀 Submitting Azure ML job: {job_name}")
+    print(f"Submitting Azure ML job: {job_name}")
 
     job = command(
         code="./",  # Entire repo is code base
@@ -53,7 +59,7 @@ def submit_job(script_path, job_name, input_blob_uri, output_path):
 
 
 def run_pipeline(input_file):
-    print("🔁 Ensuring compute exists...")
+    print("Ensuring compute exists...")
     ensure_compute_exists(COMPUTE_NAME)
 
     blob_uri = upload_to_blob(input_file)
@@ -74,8 +80,8 @@ def run_pipeline(input_file):
         output_path="azureml://datastores/workspaceblobstore/paths/outputs/eval_results.json"
     )
 
-    print(f"✅ Jobs completed.\n📄 Zero-shot job: {zero_shot_job}\n📊 Evaluation job: {evaluate_job}")
-    print("💡 Your compute will scale down after idle timeout (default: 2 mins).")
+    print(f"Jobs completed.\n Zero-shot job: {zero_shot_job}\n Evaluation job: {evaluate_job}")
+    print(" Your compute will scale down after idle timeout (default: 2 mins).")
 
 
 if __name__ == "__main__":

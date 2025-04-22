@@ -1,7 +1,17 @@
 from azure.ai.ml import MLClient
+from azure.identity import DefaultAzureCredential
 from azure.ai.ml.entities import AmlCompute
+import os
+from dotenv import load_dotenv
 
-ml_client = MLClient.from_config()
+load_dotenv()
+
+ml_client = MLClient(
+    credential=DefaultAzureCredential(),
+    subscription_id=os.getenv("AZURE_SUBSCRIPTION_ID"),
+    resource_group_name=os.getenv("AZURE_RESOURCE_GROUP"),
+    workspace_name=os.getenv("AZURE_WORKSPACE_NAME")
+)
 
 def ensure_compute_exists(name: str):
     try:
