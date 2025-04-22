@@ -2,11 +2,14 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score, average_precision_score
 import os
 import json
+from pathlib import Path
 
-DEFAULT_INPUT = os.getenv("OUTPUT_FILE", "outputs/zero_shot_predictions.csv")
-DEFAULT_REPORT = os.getenv("EVAL_REPORT", "outputs/eval_metrics.json")
+# Load from Azure ML inputs/outputs
+INPUT_FILE = os.getenv("INPUT_FILE", "outputs/zero_shot_predictions.csv")
+OUTPUT_FILE = os.getenv("OUTPUT_FILE", "outputs/eval_results.json")
 
-def evaluate_results(input_file: str = DEFAULT_INPUT, report_file: str = DEFAULT_REPORT):
+
+def evaluate_results(input_file: str = INPUT_FILE, report_file: str = OUTPUT_FILE):
     print("Evaluating results from : {input_file}")
 
     df = pd.read_csv(input_file)

@@ -6,11 +6,13 @@ dependencies:
   - python=3.10
   - pip
   - pip:
-      - torch==2.1.2
-      - transformers==4.37.2
-      - accelerate==0.27.2
+      - python-dotenv
+      - azure-identity
+      - azure-ai-ml
+      - torch
+      - transformers
+      - accelerate
       - pandas
       - scikit-learn
       - pyarrow
       - huggingface_hub
-      - ipykernel

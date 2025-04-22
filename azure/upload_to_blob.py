@@ -47,7 +47,9 @@ blob_client = blob_service_client.get_blob_client(container=container_name, blob
 with open(file_path, "rb") as data:
     blob_client.upload_blob(data)
 
-print(f"Uploaded '{file_path}' as '{final_blob_name}' in container '{container_name}'")
+blob_url = f"{storage_account_url}/{container_name}/{final_blob_name}"
+print(blob_url)
+
 
 if __name__ == "__main__":
     upload()
