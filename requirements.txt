@@ -1,0 +1,17 @@
+# Environment config
+python-dotenv
+
+# Azure ML SDK
+azure-ai-ml
+azure-identity
+
+# Data handling
+pandas
+scikit-learn
+pyarrow
+
+# LLM-based anomaly detection
+torch
+transformers
+accelerate
+huggingface_hub
