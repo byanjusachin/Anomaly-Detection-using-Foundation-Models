@@ -3,12 +3,13 @@ import os
 import subprocess
 from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
-from azure.ai.ml import MLClient, Input, command
-from llama.utils import ensure_compute_exists
+from azure.ai.ml import MLClient, Input, Output, command
+from azure.ai.ml.entities import Data, Environment
+from azure.ai.ml.constants import AssetTypes
+from utils import ensure_compute_exists
 
-load_dotenv()  # Load .env with AZURE_* values
+load_dotenv()
 
-# Auth into Azure ML
 ml_client = MLClient(
     credential=DefaultAzureCredential(),
     subscription_id=os.getenv("AZURE_SUBSCRIPTION_ID"),
@@ -17,75 +18,88 @@ ml_client = MLClient(
 )
 
 COMPUTE_NAME = "llama-compute-zero"
-ENV_YAML = "azure/ml/environment.yml"
+
+env = Environment(
+    name="llama-env-local",
+    description="Environment using local conda file",
+    conda_file="azure/ml/environment.yml",
+    image="mcr.microsoft.com/azureml/base:openmpi3.1.2-ubuntu18.04",  # lightweight CPU base image
+)
 
 
-def upload_to_blob(input_file: str) -> str:
-    print(f"Uploading {input_file} to Azure Blob...")
-    result = subprocess.run(
-        ["python", "azure/storage/upload_to_blob.py", "--file", input_file],
-        capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        print("Upload failed:", result.stderr)
-        exit(1)
+def upload_to_blob(file_path):
+    print(f" Uploading {file_path} to Azure Blob.")
+    base_name = os.path.basename(file_path)
+    data_name = os.path.splitext(base_name)[0]
+    
+    try:
+        data_asset = Data(
+            path=file_path,
+            type=AssetTypes.URI_FILE,
+            description="Uploaded input data",
+            name=data_name,
+            version="1",
+        )
+        registered_data = ml_client.data.create_or_update(data_asset)
+        print(f" Uploaded to Blob: {registered_data.path}")
+        return Input(type=AssetTypes.URI_FILE, path=registered_data.id)
+    except Exception as e:
+        print(" Dataset already exists, reusing it.")
+        return Input(type=AssetTypes.URI_FILE, path=f"azureml:{data_name}:1")
 
-    blob_uri = result.stdout.strip()
-    print(f" Uploaded to Blob: {blob_uri}")
-    return blob_uri
+def submit_job(script_path, job_name, input_data_path, output_path):
+    print(f"Submitting job: {job_name}")
+    
+    # Input object with correct formatting
+    input_data = input_data = input_data_path
 
-
-def submit_job(script_path, job_name, input_blob_uri, output_path):
-    print(f"Submitting Azure ML job: {job_name}")
-
+    
+    
     job = command(
-        code="./",  # Entire repo is code base
+        code="./llama",  # Base directory of the repo
         command=f"python {script_path}",
-        environment=f"./{ENV_YAML}",
+        environment=env,
         compute=COMPUTE_NAME,
         display_name=job_name,
         experiment_name="anomaly-detection",
         inputs={
-            "INPUT_FILE": Input(type="uri_file", path=input_blob_uri)
+            "input_data": Input(
+                type=AssetTypes.URI_FILE,
+                path=input_data
+            )
         },
-        outputs={
-            "OUTPUT_FILE": output_path
-        }
+        outputs={}
     )
-
     returned_job = ml_client.jobs.create_or_update(job)
-    ml_client.jobs.stream(returned_job.name)  # Real-time logs
-    return returned_job.name
+    ml_client.jobs.stream(returned_job.name)
+    return 
 
 
 def run_pipeline(input_file):
-    print("Ensuring compute exists...")
+    print("Ensuring compute cluster is ready...")
     ensure_compute_exists(COMPUTE_NAME)
 
-    blob_uri = upload_to_blob(input_file)
+    input_data_path = upload_to_blob(input_file)
 
-    # Step 1: Zero-Shot Detection
     zero_shot_job = submit_job(
         script_path="llama/zero_shot.py",
         job_name="zero-shot-detection",
-        input_blob_uri=blob_uri,
+        input_data_path=input_data_path,
         output_path="azureml://datastores/workspaceblobstore/paths/outputs/zero_shot_predictions.csv"
     )
 
-    # Step 2: Evaluation
     evaluate_job = submit_job(
         script_path="evaluation/evaluate.py",
         job_name="evaluate-zero-shot",
-        input_blob_uri="azureml://datastores/workspaceblobstore/paths/outputs/zero_shot_predictions.csv",
+        input_data_path="azureml://datastores/workspaceblobstore/paths/outputs/zero_shot_predictions.csv",
         output_path="azureml://datastores/workspaceblobstore/paths/outputs/eval_results.json"
     )
 
-    print(f"Jobs completed.\n Zero-shot job: {zero_shot_job}\n Evaluation job: {evaluate_job}")
-    print(" Your compute will scale down after idle timeout (default: 2 mins).")
+    print(f"Jobs completed:\n  • Zero-shot: {zero_shot_job}\n  • Evaluation: {evaluate_job}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run full anomaly detection pipeline on Azure ML.")
-    parser.add_argument("--input_file", required=True, help="Local path to the input data file")
+    parser = argparse.ArgumentParser(description="Run full AzureML pipeline for anomaly detection.")
+    parser.add_argument("--input_file", required=True, help="Path to input file for detection")
     args = parser.parse_args()
     run_pipeline(args.input_file)

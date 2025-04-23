@@ -1,0 +1,18 @@
+# Ignore binary and model files
+*.pt
+*.pkl
+*.bin
+*.zip
+*.onnx
+*.exe
+*.tar.gz
+
+# Ignore large or unnecessary folders
+__pycache__/
+checkpoints/
+outputs/
+logs/
+cache/
+
+# Ignore hidden files
+.*

@@ -6,6 +6,9 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import torch
 import json
 from pathlib import Path
+import subprocess
+subprocess.run(["pip", "install", "transformers", "torch", "scikit-learn"], check=True)
+
 
 # Load input/output paths from env vars (Azure ML friendly)
 INPUT_FILE = os.getenv("INPUT_FILE", "data/test.csv")

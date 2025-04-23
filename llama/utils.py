@@ -21,11 +21,11 @@ def ensure_compute_exists(name: str):
         print(f"Creating compute: {name}")
         cluster = AmlCompute(
             name=name,
-            size="Standard_NC6",  # GPU-enabled
+            size="Standard_F8s_v2",  # GPU-enabled
             min_instances=0,
-            max_instances=1,
+            max_instances=2,
             idle_time_before_scale_down=120
         )
-        poller = ml_client.begin_create_or_update(compute_cluster)
+        poller = ml_client.begin_create_or_update(cluster)
         poller.result()
         print(f"Compute target '{name}' created.")        

@@ -6,13 +6,10 @@ dependencies:
   - python=3.10
   - pip
   - pip:
+      - transformers
+      - torch
+      - azure-ai-ml
+      - scikit-learn
+      - pandas
       - python-dotenv
       - azure-identity
-      - azure-ai-ml
-      - torch
-      - transformers
-      - accelerate
-      - pandas
-      - scikit-learn
-      - pyarrow
-      - huggingface_hub
