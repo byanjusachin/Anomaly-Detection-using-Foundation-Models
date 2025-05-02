@@ -7,41 +7,66 @@ import torch
 import json
 from pathlib import Path
 import subprocess
-subprocess.run(["pip", "install", "transformers", "torch", "scikit-learn"], check=True)
+from transformers import logging
+from transformers import AutoConfig
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+
+
+# Silence warning logs
+logging.set_verbosity_error()
+
+
+#Using azureMl enviornment for model pathe
+MODEL_NAME="meta-llama/Llama-3.2-1B"
+#HF_TOKEN = os.getenv("HF_TOKEN")
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 
 # Load input/output paths from env vars (Azure ML friendly)
-INPUT_FILE = os.getenv("INPUT_FILE", "data/test.csv")
-OUTPUT_FILE = os.getenv("OUTPUT_FILE", "outputs/zero_shot_predictions.csv")
+INPUT_FILE = os.getenv("INPUT_DATA", "data/test.csv")
+OUTPUT_FILE = os.getenv("OUTPUT_DATA", "outputs/zero_shot_predictions.csv")
 
-MODEL_NAME = "meta-llama/Meta-Llama-3-11B-Instruct"
 
 PROMPT_TEMPLATE = """
 You are an anomaly detection assistant.
 Decide if the following is anomalous.
-Respond in JSON: {{"prediction": 0 or 1, "reason": "short explanation"}}
+Is the following transaction anomalous? Answer with 1 for Yes or 0 for No.
 
 Input: {}
+Answer:
 """
 
 def load_model():
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=True)
+
+    config = AutoConfig.from_pretrained(MODEL_NAME, use_auth_token=HF_TOKEN)
+    if hasattr(config, "rope_scaling") and isinstance(config.rope_scaling, dict):
+    # Override to only keep type and factor to prevent LLaMA error
+        config.rope_scaling = {"type": "linear", "factor": 1.0}
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        MODEL_NAME,
+        use_auth_token=HF_TOKEN
+    )
+
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME,
-        torch_dtype=torch.float16,
-        device_map="auto"
+        use_auth_token=HF_TOKEN
     )
     return tokenizer, model
 
 def run_inference(text, pipe):
     prompt = PROMPT_TEMPLATE.format(text)
-    output = pipe(prompt, max_new_tokens=256, return_full_text=False)[0]["generated_text"]
     try:
-        json_part = output.split("{", 1)[1]
-        parsed = json.loads("{" + json_part)
-        return int(parsed.get("prediction", 0)), parsed.get("reason", "")
-    except Exception:
-        return 0, "Could not parse model output"
+        output = pipe(prompt, max_new_tokens=5, return_full_text=False)[0]["generated_text"]
+        answer = output.strip().split()[0]
+        return int(answer) if answer in ['0', '1'] else 0
+    except Exception as e:
+        print(f"Error during inference: {e}")
+        return 0
 
 def run_zero_shot():
     df = pd.read_csv(INPUT_FILE)
@@ -51,22 +76,23 @@ def run_zero_shot():
         df['ground_truth'] = 0
 
     tokenizer, model = load_model()
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=0)
+    
+    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=-1)
 
     predictions = []
-    reasons = []
+    
 
     for i, row in df.iterrows():
-        pred, reason = run_inference(row['text'], pipe)
+        pred = run_inference(row['text'], pipe)
         predictions.append(pred)
-        reasons.append(reason)
-        print(f"[{i}] Predicted: {pred}, Reason: {reason[:50]}")
+       
+        print(f"[{i}] Predicted: {pred}")
 
     df['prediction'] = predictions
-    df['reason'] = reasons
+   
 
     Path(os.path.dirname(OUTPUT_FILE)).mkdir(parents=True, exist_ok=True)
-    df[['ground_truth', 'prediction', 'reason']].to_csv(OUTPUT_FILE, index=False)
+    df[['ground_truth', 'prediction']].to_csv(OUTPUT_FILE, index=False)
     print(f" Saved predictions to {OUTPUT_FILE}")
 
 if __name__ == "__main__":
