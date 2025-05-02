@@ -8,8 +8,11 @@ dependencies:
   - pip:
       - transformers
       - torch
+      - accelerate
+      - safetensors
       - azure-ai-ml
       - scikit-learn
       - pandas
       - python-dotenv
       - azure-identity
+      - azure-keyvault-secrets
