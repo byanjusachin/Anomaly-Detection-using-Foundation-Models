@@ -1,50 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anomaly Detection based on Foundation Models</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="anomaly-style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anomaly Detection & Comparison</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="mainBody">
-  <header class="topHeader">
-    <h1 class="heading1">Anamoly Detection using Foundation Models</h1>
-    <p class="subText">Please write the prompt below.</p>
-  </header>
+<body class="text-gray-100">
 
-  <main class="mainBox">
-    <div class="inputGroup">
-      <label for="input" class="label1"> </label>
-      <textarea id="input" rows="6" class="textInput" placeholder="Please write the promt here"></textarea>
+    <div class="main-container">
+        <header class="app-header">
+            <div class="logo-container">
+                <i class="fas fa-shield-alt fa-2x text-sky-400"></i>
+                <h1 class="app-title">Anomaly Detection</h1>
+            </div>
+            <p class="app-subtitle">Leveraging Foundation Models (Lama3.2B) for Advanced Cybersecurity Analysis</p>
+        </header>
+
+        <main class="content-area">
+            <div id="message-banner" class="message-banner hidden">
+                <p id="message-text"></p>
+                <button id="close-message-banner" class="ml-4 text-xl">&times;</button>
+            </div>
+
+            <section class="card upload-section">
+                <h2 class="section-title"><i class="fa-solid fa-cloud-arrow-up icon"></i>Upload Datasets</h2>
+                <label for="unifiedFileInput" class="upload-label">
+                    <div class="upload-icon-container">
+                        <i class="fa-solid fa-file-zipper text-5xl text-slate-500 group-hover:text-sky-400 transition-colors duration-300"></i>
+                    </div>
+                    <p class="upload-text"><span class="font-semibold text-sky-400">Click to upload files</span></p>
+                    <p class="upload-hint">CSV Files and Json File for Explanibility</p>
+                    <input id="unifiedFileInput" type="file" class="hidden" multiple accept=".csv,.json" />
+                </label>
+                <div id="unified-file-list-container" class="file-list-container hidden">
+                    <p class="font-semibold mb-2"><i class="fa-solid fa-list-ul icon"></i>Selected Files:</p>
+                    <ul id="unified-file-list" class="file-list">
+                    </ul>
+                </div>
+            </section>
+
+            <div class="text-center my-10">
+                 <button id="analyzeDataButton" class="action-button group">
+                    <span class="btn-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></span>
+                    <span class="btn-text">Analyze Data</span>
+                </button>
+            </div>
+            
+            <section id="resultsSection" class="results-section hidden">
+                 <h2 class="section-title results-title"><i class="fa-solid fa-square-poll-vertical icon"></i>Analysis & Comparison Results</h2>
+                 <div id="resultsContainer" class="flex flex-col gap-8">
+                    <div id="comparisonChartCard" class="result-card hidden"> 
+                        <div id="comparisonChartContainer">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div id="anomalyExplanationsCard" class="result-card hidden"> 
+                        <h3 class="sub-section-title"><i class="fa-solid fa-bullseye icon"></i>Anomaly Explanations</h3>
+                        <div id="anomalyDetailsContainer">
+                        </div>
+                    </div>
+                 </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            <p>&copy; <span id="currentYear"></span> Group B Project</p>
+        </footer>
     </div>
 
-    <div class="uploadGroup">
-      <input type="file" id="file" class="fileBox" />
-      <button id="checkBtn" class="checkBtn" disabled>Check</button>
-    </div>
-
-    <div id="loading" class="loadingBox hidden">
-      <svg class="spinIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="circle1" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="circle2" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-      </svg>
-      <span class="loadingText">Hold on...</span>
-    </div>
-
-    <div id="resultBox" class="resultBox hidden">
-      <h2 class="resultTitle">Result</h2>
-      <pre id="result" class="resultText"></pre>
-    </div>
-
-    <div id="errorBox" class="errorBox hidden">
-      <h2 class="errorTitle">Oops!</h2>
-      <p id="error" class="errorText"></p>
-    </div>
-  </main>
-
-  <footer class="footer1">&copy; Anamoly Detection using Foundation Models, 2025</footer>
-  <script src="anomaly-script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
